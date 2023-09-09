@@ -11,6 +11,8 @@ import StartScreen from './components/StartScreen';
 import State from './interfaces/state';
 import Action from './interfaces/action';
 import questionsData from './data/questionsData';
+import TimerComponent from './components/TimerComponent';
+import Footer from './components/Footer';
 
 const initialState: State = {
   questions: [],
@@ -19,7 +21,10 @@ const initialState: State = {
   answer: null,
   points: 0,
   highscore: 0,
+  secondsRemaining: 0,
 };
+
+const SECONDS_PER_QUESTION = 10;
 
 const reducer = (state: State, action: Action): State => {
   switch (action.type) {
@@ -30,7 +35,11 @@ const reducer = (state: State, action: Action): State => {
       return { ...state, questions: action.payload, status: 'error' };
 
     case 'start':
-      return { ...state, status: 'active' };
+      return {
+        ...state,
+        status: 'active',
+        secondsRemaining: state.questions.length * SECONDS_PER_QUESTION,
+      };
 
     case 'newAnswer':
       const question = state.questions[state.index];
@@ -58,6 +67,13 @@ const reducer = (state: State, action: Action): State => {
         status: 'ready',
       };
 
+    case 'tick':
+      return {
+        ...state,
+        secondsRemaining: state.secondsRemaining && state.secondsRemaining - 1,
+        status: state.secondsRemaining === 0 ? 'finished' : state.status,
+      };
+
     default:
       throw new Error('Unknown action!');
   }
@@ -65,7 +81,7 @@ const reducer = (state: State, action: Action): State => {
 
 export default function App() {
   const [state, dispatch] = useReducer<React.Reducer<State, Action>>(reducer, initialState);
-  const { questions, status, index, answer, points, highscore } = state;
+  const { questions, status, index, answer, points, highscore, secondsRemaining } = state;
   const totalQuestions = questions.length;
   const maxPossiblePoints = questions.reduce((prev, curr) => prev + curr.points, 0);
 
@@ -103,12 +119,15 @@ export default function App() {
               maxPossiblePoints={maxPossiblePoints}
             />
             <QuestionComponent question={questions[index]} dispatch={dispatch} answer={answer} />
-            <NextButtonComponent
-              dispatch={dispatch}
-              answer={answer}
-              totalQuestions={totalQuestions}
-              index={index}
-            />
+            <Footer>
+              <TimerComponent dispatch={dispatch} secondsRemaining={secondsRemaining} />
+              <NextButtonComponent
+                dispatch={dispatch}
+                answer={answer}
+                totalQuestions={totalQuestions}
+                index={index}
+              />
+            </Footer>
           </>
         )}
         {status === 'finished' && (

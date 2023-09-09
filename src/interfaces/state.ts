@@ -7,4 +7,5 @@ export default interface State {
   answer: number | null;
   points: number;
   highscore: number;
+  secondsRemaining: number;
 }

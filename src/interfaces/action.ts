@@ -6,6 +6,7 @@ export default interface Action {
     | 'newAnswer'
     | 'nextQuestion'
     | 'finish'
-    | 'restart';
+    | 'restart'
+    | 'tick';
   payload?: any;
 }
